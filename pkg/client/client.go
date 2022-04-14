@@ -122,3 +122,18 @@ func (c *waypointImpl) GetProject(ctx context.Context, name string) (*gen.Projec
 
 	return pr.Project, nil
 }
+
+func (c *waypointImpl) CreateToken(ctx context.Context, name string) (*gen.NewTokenResponse, error) {
+	gtr := &gen.LoginTokenRequest{
+		User:     nil,
+		Trigger:  false,
+	}
+
+
+	token, err := c.client.GenerateLoginToken(ctx,gtr)
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
+}
