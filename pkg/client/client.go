@@ -123,6 +123,7 @@ func (c *waypointImpl) GetProject(ctx context.Context, name string) (*gen.Projec
 	return pr.Project, nil
 }
 
+// CreateToken returns a waypoint token
 func (c *waypointImpl) CreateToken(ctx context.Context, name string) (*gen.NewTokenResponse, error) {
 	gtr := &gen.LoginTokenRequest{
 		User:     nil,
