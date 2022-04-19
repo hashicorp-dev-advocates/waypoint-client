@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp-dev-advocates/waypoint-client/pkg/client"
 )
 
-var token = "HZCwuUtmrrpgkhJJuZF4ew5ektbankBX6f33w4vHw2D6emjQoaz61knyaxokhGWVj3cYTGpkFFgXEX5vyNMZgX1S3kr7EBfKsbY9yt9aDpfPZUWP5921qJw34nwRKgQxN78HAdZnhQm8agakTacnwfUs8tbq4Rh9DDxk"
+var token = "rHhYzVXQBcKnfcTUrfnFCQtxT8HiAJmQNrfiEvydhgc448hwP4rHHBBSWkoaXwpYjnYK1G6325owyNRCQoc54WmM1ZR7c1hmdjEbNdjP9Um1Fb3Qwb7h7AM1XdrQoyzt2qUBj87qPf7hhuwvAXnHK5B4VkV7y6PRa"
 
 func main() {
 
@@ -27,7 +27,14 @@ func main() {
 		panic(err)
 	}
 
+	tk, err := wp.CreateToken(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+
+
 	fmt.Println(info.Version)
 	fmt.Println(info.Entrypoint)
 	fmt.Println(info.Api)
+	fmt.Println(tk)
 }
