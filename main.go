@@ -27,7 +27,12 @@ func main() {
 		panic(err)
 	}
 
+	tk, err := wp.CreateToken()
+
 	fmt.Println(info.Version)
 	fmt.Println(info.Entrypoint)
 	fmt.Println(info.Api)
+	fmt.Println(tk)
+
+
 }
