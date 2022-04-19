@@ -56,7 +56,7 @@ type Waypoint interface {
 	GRPCClient() gen.WaypointClient
 	GetVersionInfo(ctx context.Context) (*gen.VersionInfo, error)
 	GetProject(ctx context.Context, name string) (*gen.Project, error)
-	CreateToken(ctx context.Context) (string, error)
+	CreateToken(ctx context.Context, id UserRef) (string, error)
 }
 
 type waypointImpl struct {
@@ -144,10 +144,48 @@ func (c *waypointImpl) GetProject(ctx context.Context, name string) (*gen.Projec
 	return pr.Project, nil
 }
 
+type UserRef interface {
+	Ref()string
+}
+
+type UserId string
+
+func (u*UserId) Ref()string  {
+	return string(*u)
+}
+
+type Username string
+
+func (u*Username) Ref()string  {
+	return string(*u)
+}
+
+
 // CreateToken returns a waypoint token
-func (c *waypointImpl) CreateToken(ctx context.Context) (string, error) {
+func (c *waypointImpl) CreateToken(ctx context.Context, id UserRef) (string, error) {
+
+	var user *gen.Ref_User
+
+	switch id.(type) {
+	case *UserId:
+		user = &gen.Ref_User{
+			Ref: &gen.Ref_User_Id{Id: &gen.Ref_UserId{Id: id.Ref()}},
+		}
+
+	case *Username:
+		user = &gen.Ref_User{
+			Ref: &gen.Ref_User_Username{Username: &gen.Ref_UserUsername{Username: id.Ref()}},
+		}
+
+
+	}
+	if id != nil{
+		user = &gen.Ref_User{
+			Ref: &gen.Ref_User_Id{Id: &gen.Ref_UserId{Id: id.Ref()}},
+		}
+	}
 	gtr := &gen.LoginTokenRequest{
-		User:     nil,
+		User:     user,
 		Trigger:  false,
 	}
 

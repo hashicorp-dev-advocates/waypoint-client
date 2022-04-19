@@ -27,7 +27,8 @@ func main() {
 		panic(err)
 	}
 
-	tk, err := wp.CreateToken(context.TODO())
+	username := client.UserId("00000000000000000000000001")
+	tk, err := wp.CreateToken(context.TODO(), &username)
 	if err != nil {
 		panic(err)
 	}
