@@ -57,6 +57,8 @@ type Waypoint interface {
 	GetProject(ctx context.Context, name string) (*gen.Project, error)
 	CreateToken(ctx context.Context, id UserRef) (string, error)
 	InviteUser(ctx context.Context, InitialUsername string) (string, error)
+	AcceptInvitation(ctx context.Context, InitialUsername string) (string, error)
+	DeleteUser(ctx context.Context, id UserId) (string, error)
 }
 
 type waypointImpl struct {
@@ -212,6 +214,34 @@ func (c *waypointImpl) InviteUser(ctx context.Context, InitialUsername string) (
 	}
 
 	return inviteToken.Token, nil
+
+}
+
+func (c *waypointImpl) AcceptInvitation(ctx context.Context, InviteToken string) (string, error) {
+	citr := &gen.ConvertInviteTokenRequest{
+		Token: InviteToken,
+	}
+
+	si, err := c.client.ConvertInviteToken(ctx, citr)
+	if err != nil {
+		return "", err
+	}
+
+	return si.Token, nil
+
+}
+
+func (c *waypointImpl) DeleteUser(ctx context.Context, id UserId) (string, error) {
+	dur := &gen.DeleteUserRequest{User: &gen.Ref_User{
+		Ref: &gen.Ref_User_Id{Id: &gen.Ref_UserId{Id: id.Ref()}},
+	}}
+
+	_, err := c.client.DeleteUser(ctx, dur)
+	if err != nil {
+		return "", err
+	}
+
+	return "User deleted", nil
 
 }
 
