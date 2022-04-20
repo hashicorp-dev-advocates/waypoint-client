@@ -25,7 +25,7 @@ const (
 	protocolVersionApiMin                   = 1
 	protocolVersionEntrypointCurrent uint32 = 1
 	protocolVersionEntrypointMin            = 1
-	currentVersion							= "0.8.1"
+	currentVersion                          = "0.8.1"
 )
 
 var ConnectionFail error = errors.New("unable to connect to Waypoint server")
@@ -43,7 +43,6 @@ type ClientConfig struct {
 	UseInsecureSkipVerify bool
 }
 
-
 func DefaultConfig() ClientConfig {
 	return ClientConfig{
 		Address: "localhost:9701",
@@ -57,6 +56,7 @@ type Waypoint interface {
 	GetVersionInfo(ctx context.Context) (*gen.VersionInfo, error)
 	GetProject(ctx context.Context, name string) (*gen.Project, error)
 	CreateToken(ctx context.Context, id UserRef) (string, error)
+	InviteUser(ctx context.Context, InitialUsername string) (string, error)
 }
 
 type waypointImpl struct {
@@ -79,7 +79,6 @@ func New(config ClientConfig) (Waypoint, error) {
 		),
 		grpc.WithUnaryInterceptor(UnaryClientInterceptor(CurrentVersion())),
 		grpc.WithStreamInterceptor(StreamClientInterceptor(CurrentVersion())),
-
 	)
 
 	if err != nil {
@@ -145,21 +144,20 @@ func (c *waypointImpl) GetProject(ctx context.Context, name string) (*gen.Projec
 }
 
 type UserRef interface {
-	Ref()string
+	Ref() string
 }
 
 type UserId string
 
-func (u*UserId) Ref()string  {
+func (u *UserId) Ref() string {
 	return string(*u)
 }
 
 type Username string
 
-func (u*Username) Ref()string  {
+func (u *Username) Ref() string {
 	return string(*u)
 }
-
 
 // CreateToken returns a waypoint token
 func (c *waypointImpl) CreateToken(ctx context.Context, id UserRef) (string, error) {
@@ -177,25 +175,44 @@ func (c *waypointImpl) CreateToken(ctx context.Context, id UserRef) (string, err
 			Ref: &gen.Ref_User_Username{Username: &gen.Ref_UserUsername{Username: id.Ref()}},
 		}
 
-
 	}
-	if id != nil{
+	if id != nil {
 		user = &gen.Ref_User{
 			Ref: &gen.Ref_User_Id{Id: &gen.Ref_UserId{Id: id.Ref()}},
 		}
 	}
 	gtr := &gen.LoginTokenRequest{
-		User:     user,
-		Trigger:  false,
+		User:    user,
+		Trigger: false,
 	}
 
-
-	token, err := c.client.GenerateLoginToken(ctx,gtr)
+	token, err := c.client.GenerateLoginToken(ctx, gtr)
 	if err != nil {
 		return "", err
 	}
 
 	return token.Token, nil
+}
+
+// InviteUser returns a invitation token
+func (c *waypointImpl) InviteUser(ctx context.Context, InitialUsername string) (string, error) {
+
+	tis := &gen.Token_Invite_Signup{
+		InitialUsername: InitialUsername,
+	}
+	uir := &gen.InviteTokenRequest{
+		Duration:         "60m",
+		Signup:           tis,
+		UnusedEntrypoint: nil,
+	}
+
+	inviteToken, err := c.client.GenerateInviteToken(ctx, uir)
+	if err != nil {
+		return "", err
+	}
+
+	return inviteToken.Token, nil
+
 }
 
 func UnaryClientInterceptor(serverInfo *gen.VersionInfo) grpc.UnaryClientInterceptor {
@@ -208,9 +225,9 @@ func UnaryClientInterceptor(serverInfo *gen.VersionInfo) grpc.UnaryClientInterce
 		opts ...grpc.CallOption) error {
 		ctx = metadata.AppendToOutgoingContext(ctx,
 			HeaderClientApiProtocol, fmt.Sprintf(
-				"%d,%d",serverInfo.Api.Minimum, serverInfo.Api.Current),
+				"%d,%d", serverInfo.Api.Minimum, serverInfo.Api.Current),
 			HeaderClientEntrypointProtocol, fmt.Sprintf(
-				"%d,%d",serverInfo.Entrypoint.Minimum, serverInfo.Entrypoint.Current),
+				"%d,%d", serverInfo.Entrypoint.Minimum, serverInfo.Entrypoint.Current),
 			HeaderClientVersion, serverInfo.Version,
 		)
 
@@ -230,9 +247,9 @@ func StreamClientInterceptor(serverInfo *gen.VersionInfo) grpc.StreamClientInter
 		opts ...grpc.CallOption) (grpc.ClientStream, error) {
 		ctx = metadata.AppendToOutgoingContext(ctx,
 			HeaderClientApiProtocol, fmt.Sprintf(
-				"%d,%d",serverInfo.Api.Minimum, serverInfo.Api.Current),
+				"%d,%d", serverInfo.Api.Minimum, serverInfo.Api.Current),
 			HeaderClientEntrypointProtocol, fmt.Sprintf(
-				"%d,%d",serverInfo.Entrypoint.Minimum, serverInfo.Entrypoint.Current),
+				"%d,%d", serverInfo.Entrypoint.Minimum, serverInfo.Entrypoint.Current),
 			HeaderClientVersion, serverInfo.Version,
 		)
 
