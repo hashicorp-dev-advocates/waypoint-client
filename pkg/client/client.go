@@ -56,9 +56,10 @@ type Waypoint interface {
 	GetVersionInfo(ctx context.Context) (*gen.VersionInfo, error)
 	GetProject(ctx context.Context, name string) (*gen.Project, error)
 	CreateToken(ctx context.Context, id UserRef) (string, error)
-	InviteUser(ctx context.Context, InitialUsername string) (string, error)
+	InviteUser(ctx context.Context, InitialUsername string, TokenTtl string) (string, error)
 	AcceptInvitation(ctx context.Context, InitialUsername string) (string, error)
 	DeleteUser(ctx context.Context, id UserId) (string, error)
+	GetUser(ctx context.Context, username Username) (*gen.User, error)
 }
 
 type waypointImpl struct {
@@ -197,13 +198,14 @@ func (c *waypointImpl) CreateToken(ctx context.Context, id UserRef) (string, err
 }
 
 // InviteUser returns a invitation token
-func (c *waypointImpl) InviteUser(ctx context.Context, InitialUsername string) (string, error) {
+func (c *waypointImpl) InviteUser(ctx context.Context, InitialUsername string, TokenTtl string) (string, error) {
 
 	tis := &gen.Token_Invite_Signup{
 		InitialUsername: InitialUsername,
 	}
+
 	uir := &gen.InviteTokenRequest{
-		Duration:         "60m",
+		Duration:         TokenTtl,
 		Signup:           tis,
 		UnusedEntrypoint: nil,
 	}
@@ -228,6 +230,23 @@ func (c *waypointImpl) AcceptInvitation(ctx context.Context, InviteToken string)
 	}
 
 	return si.Token, nil
+
+}
+
+func (c *waypointImpl) GetUser(ctx context.Context, username Username) (*gen.User, error) {
+
+	gur := &gen.GetUserRequest{
+		User: &gen.Ref_User{
+			Ref: &gen.Ref_User_Username{Username: &gen.Ref_UserUsername{Username: username.Ref()}},
+		},
+	}
+
+	gu, err := c.client.GetUser(ctx, gur)
+	if err != nil {
+		return nil, err
+	}
+
+	return gu.User, nil
 
 }
 

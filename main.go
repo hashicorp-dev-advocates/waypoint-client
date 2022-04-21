@@ -22,10 +22,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	info, err := wp.GetVersionInfo(context.TODO())
-	if err != nil {
-		panic(err)
-	}
+	// Get Version Info
+	//info, err := wp.GetVersionInfo(context.TODO())
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	//username := client.UserId("00000000000000000000000001")
 	//tk, err := wp.CreateToken(context.TODO(), &username)
@@ -34,22 +35,25 @@ func main() {
 	//}
 
 	// Invite User
-	//inviteUsername := "Robert"
-	//inv, err := wp.InviteUser(context.TODO(), inviteUsername)
-	//if err != nil {
-	//	panic(err)
-	//}
+	inviteUsername := "DevOpsRob"
+	inv, err := wp.InviteUser(context.TODO(), inviteUsername, "30s")
+	if err != nil {
+		panic(err)
+	}
 
 	// Accept User
-	//tok, err := wp.AcceptInvitation(context.TODO(), inv)
-	//
+	tok, err := wp.AcceptInvitation(context.TODO(), inv)
 
 	// Delete User
-	du, err := wp.DeleteUser(context.TODO(), client.UserId("01G13MNGG5YZ6GNDF3FSXNA18X"))
+	//du, err := wp.DeleteUser(context.TODO(), client.UserId("01G13MNGG5YZ6GNDF3FSXNA18X"))
 
-	fmt.Println(info.Version)
-	fmt.Println(info.Entrypoint)
-	fmt.Println(info.Api)
-	//fmt.Println(tk)
-	fmt.Println(du)
+	gu, err := wp.GetUser(context.TODO(), "DevOpsRob")
+
+	//fmt.Println(info.Version)
+	//fmt.Println(info.Entrypoint)
+	//fmt.Println(info.Api)
+	fmt.Printf("Token: %s \n", tok)
+	fmt.Printf("Username: %s \n", gu.Username)
+	fmt.Printf("User ID: %s \n", gu.Id)
+	fmt.Println(gu.Display)
 }
