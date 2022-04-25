@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -27,16 +28,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	gu, err := wp.GetUser(context.TODO(), "DevOpsRob")
-	if err != nil {
-		panic(err)
-	}
+	npr, err := wp.CreateProject(context.TODO(), "lash", false)
 
-
-	_, err = wp.DeleteUser(context.TODO(), client.UserId(gu.Id))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-
+	fmt.Println(npr)
 }
