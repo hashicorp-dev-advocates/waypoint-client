@@ -1,4 +1,6 @@
-# Waypoint Client
+# WIP - Waypoint Client
+
+**DISCLAIMER - THIS PACKAGE IS NOT READY FOR PRODUCTION USUAGE. BREAKING CHANGES SHOULD BE EXPECTED**
 
 [Hashicorp Waypoint](https://www.waypointproject.io/) has a builtin gRPC API that can be used to interact with the [Waypoint Server](https://www.waypointproject.io/docs/server); however, the SDK does not ship with a client to interact with this API. This is Go client library for Waypoint that exposes some of the gRPC methods in order to interact with the server.
 
