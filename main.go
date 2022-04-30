@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"github.com/hashicorp-dev-advocates/waypoint-client/pkg/client"
+	"github.com/kr/pretty"
 	"log"
 	"os"
-
-	"github.com/hashicorp-dev-advocates/waypoint-client/pkg/client"
+	"time"
 )
 
 var token string
@@ -28,7 +28,31 @@ func main() {
 		log.Fatal(err)
 	}
 
-	npr, err := wp.CreateProject(context.TODO(), "lash", false)
+	//ga := &client.GitAuthBasic{
+	//	Username: "",
+	//	Password: "",
+	//}
+	gc := client.Git{
+		Url:  "https://github.com/hashicorp/waypoint-examples",
+		Path: "docker/go",
+	}
 
-	fmt.Println(npr)
+	projconf := client.DefaultProjectConfig()
+
+	projconf.Name = "NJackson"
+	projconf.RemoteRunnersEnabled = false
+	projconf.GitPollInterval = 30 * time.Second
+	//projconf.DataSourcePoll = ""
+	//projconf.WaypointHcl = []byte("")
+	//projconf.WaypointHclFormat = 0
+	//projconf.FileChangeSignal = ""
+	//projconf.Variables = ""
+	//projconf.StatusReportPoll = ""
+
+	npr, err := wp.UpsertProject(context.TODO(), projconf, &gc)
+	if err != nil {
+		panic(err)
+	}
+
+	pretty.Println(npr)
 }

@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
-	//"github.com/hashicorp/waypoint/pkg/protocolversion"
 )
 
 const (
@@ -59,7 +58,9 @@ type Waypoint interface {
 	AcceptInvitation(ctx context.Context, InitialUsername string) (string, error)
 	DeleteUser(ctx context.Context, id UserId) (string, error)
 	GetUser(ctx context.Context, username Username) (*gen.User, error)
-	CreateProject(ctx context.Context, name string, remoteEnabled bool) (*gen.Project, error)
+	UpsertProject(ctx context.Context,
+		projectConfig ProjectConfig,
+		gitConfig *Git) (*gen.Project, error)
 }
 
 type waypointImpl struct {
