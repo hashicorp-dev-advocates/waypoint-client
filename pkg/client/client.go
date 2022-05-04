@@ -60,7 +60,9 @@ type Waypoint interface {
 	GetUser(ctx context.Context, username Username) (*gen.User, error)
 	UpsertProject(ctx context.Context,
 		projectConfig ProjectConfig,
-		gitConfig *Git) (*gen.Project, error)
+		gitConfig *Git,
+		variables []*gen.Variable,
+	) (*gen.Project, error)
 }
 
 type waypointImpl struct {

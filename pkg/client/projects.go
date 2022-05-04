@@ -131,12 +131,29 @@ func (ds *DataSourceLocal) Ref() string {
 	return string(*ds)
 }
 
+type InputVariables struct {
+	Variable []Variable
+}
+
+type Variable struct {
+	Name  string
+	Value gen.Variable_Str
+}
+
+func SetVariable() gen.Variable {
+	return gen.Variable{
+		Name:  "",
+		Value: &gen.Variable_Str{Str: ""},
+	}
+}
+
 // UpsertProject creates or updates a named project on the Waypoint Server
 // gc := &Git{Url: "blah",Auth: &GitAuthSsh{PrivateKeyPem: "blah"}}
 func (c *waypointImpl) UpsertProject(
 	ctx context.Context,
 	projectConfig ProjectConfig,
 	gitConfig *Git,
+	variables []*gen.Variable,
 ) (*gen.Project, error) {
 
 	jobGit := &gen.Job_Git{
@@ -177,7 +194,7 @@ func (c *waypointImpl) UpsertProject(
 			WaypointHcl:       projectConfig.WaypointHcl,
 			WaypointHclFormat: projectConfig.WaypointHclFormat,
 			FileChangeSignal:  projectConfig.FileChangeSignal,
-			Variables:         projectConfig.Variables,
+			Variables:         variables,
 			StatusReportPoll:  projectConfig.StatusReportPoll,
 		},
 	}
