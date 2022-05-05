@@ -155,3 +155,16 @@ func TestUpsertProjectSetsGitSshAuth(t *testing.T) {
 	require.Equal(t, "docker/go", projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Path)
 	require.Equal(t, "https://github.com/hashicorp/waypoint-examples", projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Url)
 }
+
+func TestGetProject(t *testing.T) {
+	c, m := setupTests(t)
+
+	m.On("GetProject", mock.Anything, mock.Anything).Return(&gen.GetProjectResponse{}, nil)
+	_, err := c.GetProject(context.TODO(), "test")
+	require.NoError(t, err)
+
+	m.AssertCalled(t, "GetProject", mock.Anything, mock.Anything)
+	getProj := m.Calls[0].Arguments.Get(1).(*gen.GetProjectRequest)
+
+	require.Equal(t, "test", getProj.Project.Project)
+}
