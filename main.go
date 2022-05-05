@@ -35,7 +35,7 @@ func main() {
 	}
 
 	projconf := client.DefaultProjectConfig()
-
+	
 	projconf.Name = "robbarnes"
 	projconf.RemoteRunnersEnabled = false
 	projconf.GitPollInterval = 30 * time.Second

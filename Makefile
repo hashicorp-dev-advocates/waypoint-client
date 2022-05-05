@@ -36,3 +36,6 @@ get_google_protos:
 	curl -L -s -o ./protos/google/protobuf/timestamp.proto https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/timestamp.proto
 	curl -L -s -o ./protos/google/protobuf/any.proto https://raw.githubusercontent.com/protocolbuffers/protobuf/main/src/google/protobuf/any.proto
 	curl -L -s -o ./protos/google/rpc/status.proto https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto
+
+test:
+	go test ./pkg/client/ -v
