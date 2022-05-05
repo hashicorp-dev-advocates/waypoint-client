@@ -10,8 +10,6 @@ import (
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/types/known/emptypb"
-	//"github.com/hashicorp/waypoint/pkg/protocolversion"
 )
 
 const (
@@ -60,6 +58,11 @@ type Waypoint interface {
 	AcceptInvitation(ctx context.Context, InitialUsername string) (string, error)
 	DeleteUser(ctx context.Context, id UserId) (string, error)
 	GetUser(ctx context.Context, username Username) (*gen.User, error)
+	UpsertProject(ctx context.Context,
+		projectConfig ProjectConfig,
+		gitConfig *Git,
+		variables []*gen.Variable,
+	) (*gen.Project, error)
 }
 
 type waypointImpl struct {
@@ -122,148 +125,6 @@ func (c *waypointImpl) GRPCClient() gen.WaypointClient {
 	return c.client
 }
 
-// GetVersionInfo returns the version info from the Waypoint server
-func (c *waypointImpl) GetVersionInfo(ctx context.Context) (*gen.VersionInfo, error) {
-	gvr, err := c.client.GetVersionInfo(context.Background(), &emptypb.Empty{}, grpc.WaitForReady(true))
-	if err != nil {
-		return nil, err
-	}
-
-	return gvr.Info, nil
-}
-
-// GetProject returns the project details for the given project name
-func (c *waypointImpl) GetProject(ctx context.Context, name string) (*gen.Project, error) {
-	gpr := &gen.GetProjectRequest{
-		Project: &gen.Ref_Project{Project: name},
-	}
-
-	pr, err := c.client.GetProject(ctx, gpr)
-	if err != nil {
-		return nil, err
-	}
-
-	return pr.Project, nil
-}
-
-type UserRef interface {
-	Ref() string
-}
-
-type UserId string
-
-func (u *UserId) Ref() string {
-	return string(*u)
-}
-
-type Username string
-
-func (u *Username) Ref() string {
-	return string(*u)
-}
-
-// CreateToken returns a waypoint token
-func (c *waypointImpl) CreateToken(ctx context.Context, id UserRef) (string, error) {
-
-	var user *gen.Ref_User
-
-	switch id.(type) {
-	case *UserId:
-		user = &gen.Ref_User{
-			Ref: &gen.Ref_User_Id{Id: &gen.Ref_UserId{Id: id.Ref()}},
-		}
-
-	case *Username:
-		user = &gen.Ref_User{
-			Ref: &gen.Ref_User_Username{Username: &gen.Ref_UserUsername{Username: id.Ref()}},
-		}
-
-	}
-	if id != nil {
-		user = &gen.Ref_User{
-			Ref: &gen.Ref_User_Id{Id: &gen.Ref_UserId{Id: id.Ref()}},
-		}
-	}
-	gtr := &gen.LoginTokenRequest{
-		User:    user,
-		Trigger: false,
-	}
-
-	token, err := c.client.GenerateLoginToken(ctx, gtr)
-	if err != nil {
-		return "", err
-	}
-
-	return token.Token, nil
-}
-
-// InviteUser returns a invitation token
-func (c *waypointImpl) InviteUser(ctx context.Context, InitialUsername string, TokenTtl string) (string, error) {
-
-	tis := &gen.Token_Invite_Signup{
-		InitialUsername: InitialUsername,
-	}
-
-	uir := &gen.InviteTokenRequest{
-		Duration:         TokenTtl,
-		Signup:           tis,
-		UnusedEntrypoint: nil,
-	}
-
-	inviteToken, err := c.client.GenerateInviteToken(ctx, uir)
-	if err != nil {
-		return "", err
-	}
-
-	return inviteToken.Token, nil
-
-}
-
-func (c *waypointImpl) AcceptInvitation(ctx context.Context, InviteToken string) (string, error) {
-	citr := &gen.ConvertInviteTokenRequest{
-		Token: InviteToken,
-	}
-
-	si, err := c.client.ConvertInviteToken(ctx, citr)
-	if err != nil {
-		return "", err
-	}
-
-	return si.Token, nil
-
-}
-
-func (c *waypointImpl) GetUser(ctx context.Context, username Username) (*gen.User, error) {
-
-	gur := &gen.GetUserRequest{
-		User: &gen.Ref_User{
-			Ref: &gen.Ref_User_Username{Username: &gen.Ref_UserUsername{Username: username.Ref()}},
-		},
-	}
-
-	gu, err := c.client.GetUser(ctx, gur)
-	if err != nil {
-		return nil, err
-	}
-
-	return gu.User, nil
-
-}
-
-func (c *waypointImpl) DeleteUser(ctx context.Context, id UserId) (string, error) {
-	dur := &gen.DeleteUserRequest{User: &gen.Ref_User{
-		Ref: &gen.Ref_User_Id{Id: &gen.Ref_UserId{Id: id.Ref()}},
-	}}
-
-	_, err := c.client.DeleteUser(ctx, dur)
-	if err != nil {
-		return "", err
-	}
-
-	return "User deleted", nil
-
-}
-
 func UnaryClientInterceptor(serverInfo *gen.VersionInfo) grpc.UnaryClientInterceptor {
 	return func(
 		ctx context.Context,
@@ -306,7 +167,7 @@ func StreamClientInterceptor(serverInfo *gen.VersionInfo) grpc.StreamClientInter
 	}
 }
 
-// Current returns the current protocol version information.
+// CurrentVersion returns the current protocol version information.
 func CurrentVersion() *gen.VersionInfo {
 	return &gen.VersionInfo{
 		Api: &gen.VersionInfo_ProtocolVersion{
