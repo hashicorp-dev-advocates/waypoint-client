@@ -119,6 +119,39 @@ func TestUpsertProjectSetsGitBasicAuth(t *testing.T) {
 	projRequest := m.Calls[0].Arguments.Get(1).(*gen.UpsertProjectRequest)
 
 	require.NotNil(t, projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Auth)
+	require.Equal(t, "", projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Auth.(*gen.Job_Git_Basic_).Basic.Username)
+	require.Equal(t, "", projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Auth.(*gen.Job_Git_Basic_).Basic.Password)
+	require.Equal(t, "docker/go", projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Path)
+	require.Equal(t, "https://github.com/hashicorp/waypoint-examples", projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Url)
+}
+
+func TestUpsertProjectSetsGitSshAuth(t *testing.T) {
+	p := DefaultProjectConfig()
+	p.Name = "test"
+
+	g := Git{
+		Url:  "https://github.com/hashicorp/waypoint-examples",
+		Path: "docker/go",
+		Auth: &GitAuthSsh{
+			PrivateKeyPem: nil,
+			Password:      "",
+			User:          "",
+		},
+	}
+
+	c, m := setupTests(t)
+
+	m.On("UpsertProject", mock.Anything, mock.Anything).Return(&gen.UpsertProjectResponse{}, nil)
+
+	_, err := c.UpsertProject(context.TODO(), p, &g, nil)
+	require.NoError(t, err)
+
+	m.AssertCalled(t, "UpsertProject", mock.Anything, mock.Anything)
+	projRequest := m.Calls[0].Arguments.Get(1).(*gen.UpsertProjectRequest)
+
+	require.Equal(t, "", projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Auth.(*gen.Job_Git_Ssh).Ssh.Password)
+	require.Equal(t, "", projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Auth.(*gen.Job_Git_Ssh).Ssh.User)
+	require.Equal(t, []uint8([]byte(nil)), projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Auth.(*gen.Job_Git_Ssh).Ssh.PrivateKeyPem)
 	require.Equal(t, "docker/go", projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Path)
 	require.Equal(t, "https://github.com/hashicorp/waypoint-examples", projRequest.Project.DataSource.Source.(*gen.Job_DataSource_Git).Git.Url)
 }
