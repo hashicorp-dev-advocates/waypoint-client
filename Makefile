@@ -23,6 +23,10 @@ generate_protos: get_google_protos get_waypoint_protos
 		--proto_path=./protos \
 		protos/waypoint/waypoint.proto
 
+# Generate the mocks for the waypoint client using mockery
+generate_mocks:
+	docker run -it -v ${PWD}:/code -w /code/pkg/waypoint vektra/mockery
+
 get_waypoint_protos:
 	curl -L -s -o ./protos/waypoint/waypoint.proto https://raw.githubusercontent.com/hashicorp/waypoint/main/pkg/server/proto/server.proto
 	curl -L -s -o ./protos/any.proto https://raw.githubusercontent.com/hashicorp/waypoint/main/thirdparty/proto/opaqueany/any.proto
