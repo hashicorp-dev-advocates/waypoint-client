@@ -33,7 +33,7 @@ type ProjectConfig struct {
 	// Application polling settings.
 	// Polling will trigger a "StatusFunc" for collecting
 	// a report on the current status of the application.
-	StatusReportPoll *gen.Project_AppStatusPoll
+	StatusReportPoll time.Duration
 }
 
 func DefaultProjectConfig() ProjectConfig {
@@ -47,7 +47,7 @@ func DefaultProjectConfig() ProjectConfig {
 		WaypointHclFormat: 0,
 		FileChangeSignal:  "",
 		Variables:         nil,
-		StatusReportPoll:  nil,
+		StatusReportPoll:  0,
 	}
 }
 
@@ -186,6 +186,11 @@ func (c *waypointImpl) UpsertProject(
 		Interval: projectConfig.GitPollInterval.String(),
 	}
 
+	statusReportPoll := &gen.Project_AppStatusPoll{
+		Enabled:  projectConfig.StatusReportPoll > 0,
+		Interval: projectConfig.StatusReportPoll.String(),
+	}
+
 	upr := &gen.UpsertProjectRequest{
 		Project: &gen.Project{
 			Name:              projectConfig.Name,
@@ -196,7 +201,7 @@ func (c *waypointImpl) UpsertProject(
 			WaypointHclFormat: projectConfig.WaypointHclFormat,
 			FileChangeSignal:  projectConfig.FileChangeSignal,
 			Variables:         variables,
-			StatusReportPoll:  projectConfig.StatusReportPoll,
+			StatusReportPoll:  statusReportPoll,
 		},
 	}
 
