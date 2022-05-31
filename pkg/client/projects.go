@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	gen "github.com/hashicorp-dev-advocates/waypoint-client/pkg/waypoint"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
 )
 
@@ -10,7 +11,7 @@ type ProjectConfig struct {
 	// Name of Waypoint project
 	Name string
 	// List of applications associated with Waypoint project
-	Applications []*gen.Application
+	//Applications []*gen.Application
 	// Whether remote runners are enabled or not
 	RemoteRunnersEnabled bool
 	// Where data is sourced for remote operations
@@ -37,8 +38,8 @@ type ProjectConfig struct {
 
 func DefaultProjectConfig() ProjectConfig {
 	return ProjectConfig{
-		Name:                 "",
-		Applications:         nil,
+		Name: "",
+		//Applications:         nil,
 		RemoteRunnersEnabled: false,
 		//DataSource:        nil,
 		GitPollInterval:   0,
@@ -219,4 +220,14 @@ func (c *waypointImpl) GetProject(ctx context.Context, name string) (*gen.Projec
 	}
 
 	return pr.Project, nil
+}
+
+func (c *waypointImpl) ListProject(ctx context.Context) ([]*gen.Ref_Project, error) {
+
+	prl, err := c.client.ListProjects(ctx, &emptypb.Empty{})
+	if err != nil {
+		return nil, err
+	}
+
+	return prl.Projects, nil
 }

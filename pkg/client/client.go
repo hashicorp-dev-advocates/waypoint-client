@@ -58,6 +58,7 @@ type Waypoint interface {
 	AcceptInvitation(ctx context.Context, InitialUsername string) (string, error)
 	DeleteUser(ctx context.Context, id UserId) (string, error)
 	GetUser(ctx context.Context, username Username) (*gen.User, error)
+	ListProject(ctx context.Context) ([]*gen.Ref_Project, error)
 	UpsertProject(ctx context.Context,
 		projectConfig ProjectConfig,
 		gitConfig *Git,
