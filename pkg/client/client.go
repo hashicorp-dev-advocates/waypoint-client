@@ -59,6 +59,8 @@ type Waypoint interface {
 	DeleteUser(ctx context.Context, id UserId) (string, error)
 	GetUser(ctx context.Context, username Username) (*gen.User, error)
 	ListProject(ctx context.Context) ([]*gen.Ref_Project, error)
+	CreateRunnerProfile(ctx context.Context, config RunnerConfig) (*gen.UpsertOnDemandRunnerConfigResponse, error)
+	GetRunnerProfile(ctx context.Context, id string) (*gen.GetOnDemandRunnerConfigResponse, error)
 	UpsertProject(ctx context.Context,
 		projectConfig ProjectConfig,
 		gitConfig *Git,
