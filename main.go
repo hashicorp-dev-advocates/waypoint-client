@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/hashicorp-dev-advocates/waypoint-client/pkg/client"
+	gen "github.com/hashicorp-dev-advocates/waypoint-client/pkg/waypoint"
 	"github.com/kr/pretty"
 	"log"
 	"os"
@@ -68,12 +69,20 @@ func main() {
 		"VAULT_ADDR": "http://localhost:8200",
 	}
 
+	var labels = map[string]string{
+		"app": "example",
+	}
+
 	dCon := client.DefaultRunnerConfig()
-	dCon.Name = "mercedes"
+	dCon.Name = "ferrari"
 	dCon.OciUrl = "hashicorp/waypoint-odr:latest"
 	dCon.EnvironmentVariables = envVarsMap
-	dCon.Default = false
+	dCon.Default = true
 	dCon.PluginType = "docker"
+	dCon.TargetRunner.Target = &gen.Ref_Runner_Labels{
+		Labels: &gen.Ref_RunnerLabels{
+			Labels: labels,
+		}}
 
 	urp, err := wp.CreateRunnerProfile(context.TODO(), dCon)
 
